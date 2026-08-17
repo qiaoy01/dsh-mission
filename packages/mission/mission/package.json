@@ -1,0 +1,53 @@
+{
+  "name": "@deepseek-ai/dsh-mission",
+  "version": "0.1.0",
+  "description": "Persistent long-horizon autonomous mission runtime for DeepSeek Harness: dependency DAG, independent verification, replan-on-failure, lease ownership.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/src/invariant.d.ts",
+      "default": "./lib/src/invariant.js"
+    },
+    "./tool": {
+      "types": "./lib/src/tools.d.ts",
+      "default": "./lib/src/tools.js"
+    },
+    "./driver-host": {
+      "types": "./lib/src/driver-host.d.ts",
+      "default": "./lib/src/driver-host.js"
+    },
+    "./projection": {
+      "types": "./lib/src/projection.d.ts",
+      "default": "./lib/src/projection.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-agent": "*",
+    "@deepseek-ai/dsh-invariants": "*",
+    "@deepseek-ai/dsh-llm": "*",
+    "@deepseek-ai/dsh-session": "*",
+    "@deepseek-ai/dsh-session-projection": "*",
+    "@deepseek-ai/dsh-subagent": "*",
+    "@deepseek-ai/dsh-tools": "*",
+    "zod": "*"
+  }
+}

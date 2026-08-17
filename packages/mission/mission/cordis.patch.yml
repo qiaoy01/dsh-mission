@@ -1,0 +1,30 @@
+# The @deepseek-ai/dsh-mission bundle patch: inserts the mission service, the
+# model-facing mission tools, the (tolerant) invariant companion, the
+# autonomous driver host, and the session-projection unit into the profile.
+#
+# mission-driver defaults are conservative: deterministic task selection and
+# no automatic replan, so the default composition costs no model calls. Set
+#   config: { decider: llm, replan: true }
+# on the mission-driver row to enable model-driven strategies.
+- insert:
+    - id: mission
+      name: '@deepseek-ai/dsh-mission'
+
+    - id: mission-tool
+      name: '@deepseek-ai/dsh-mission/tool'
+
+    # Tolerant: registers only when the `invariants` service exists (dev/test
+    # compositions); a shipped host without dsh-invariants is a no-op.
+    - id: mission-invariant
+      name: '@deepseek-ai/dsh-mission/invariant'
+
+    # The autonomous loop host: drives the owning session's mission whenever
+    # the agent is idle (claim -> subagent execute -> report -> verify), with
+    # lazy lease reclamation.
+    - id: mission-driver
+      name: '@deepseek-ai/dsh-mission/driver-host'
+
+    # UI data plane: the `mission` session projection unit (no-op where the
+    # session-projection registry is absent).
+    - id: mission-projection
+      name: '@deepseek-ai/dsh-mission/projection'
