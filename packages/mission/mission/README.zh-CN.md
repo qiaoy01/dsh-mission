@@ -4,7 +4,7 @@
 > 跨会话、可独立验证、失败可重规划、崩溃可恢复的自主控制循环。
 > DAG(依赖任务图)是它的驱动/执行手段之一,不是运行时本身。
 
-[English](README.md) | 中文
+[English](https://github.com/qiaoy01/dsh-mission/blob/main/README.md) | 中文
 
 ## 是什么
 
@@ -102,9 +102,9 @@ node --experimental-strip-types tests/projection.test.mjs # 会话投影单元
   阶段 D(重规划 / lease 回收 / 模型决策 / 审批闸)✅ · 阶段 E(投影 ✅,浏览器 UI 待做);
 - **真实组合验证**:7 任务 DAG 由真实子代理自主推进至 COMPLETED,
   每个任务独立验证通过,全程零失败、零重复派发;
-- 更多设计细节见 [`docs/design.md`](docs/design.md),dsh 机制调研与去重依据见
-  [`docs/research.md`](docs/research.md)。
+- 更多设计细节见 [docs/design.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/design.md),
+  dsh 机制调研与去重依据见 [docs/research.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/research.md)。
 
 ## 许可
 
-MIT —— 详见 [LICENSE](LICENSE)。
+MIT —— 详见 [LICENSE](https://github.com/qiaoy01/dsh-mission/blob/main/LICENSE)。

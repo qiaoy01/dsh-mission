@@ -5,7 +5,7 @@
 > verifiable, replan-on-failure, crash-recoverable autonomous control loop.
 > The dependency DAG is one of its driving mechanisms, not the runtime itself.
 
-English | [中文](README.zh-CN.md)
+English | [中文](https://github.com/qiaoy01/dsh-mission/blob/main/README.zh-CN.md)
 
 ## What it is
 
@@ -116,9 +116,10 @@ node --experimental-strip-types tests/projection.test.mjs # session-projection u
 - **Verified in a real composition**: a 7-task DAG driven end-to-end by real
   subagents to COMPLETED, every task independently verified, zero failures and
   zero duplicate dispatches;
-- Design details: [`docs/design.md`](docs/design.md); dsh mechanism survey and
-  deduplication rationale: [`docs/research.md`](docs/research.md).
+- Design details: [docs/design.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/design.md);
+  dsh mechanism survey and deduplication rationale:
+  [docs/research.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/research.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/qiaoy01/dsh-mission/blob/main/LICENSE).
