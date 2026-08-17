@@ -1,5 +1,5 @@
 {
-  "name": "@deepseek-ai/dsh-mission",
+  "name": "@qiaoy01/mission",
   "version": "0.1.0",
   "description": "Persistent long-horizon autonomous mission runtime for DeepSeek Harness: dependency DAG, independent verification, replan-on-failure, lease ownership.",
   "license": "MIT",

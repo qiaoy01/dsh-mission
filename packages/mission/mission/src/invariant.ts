@@ -21,7 +21,7 @@ import { foldMission } from './fold.ts'
 import { validateEvent } from './validate.ts'
 import type { MissionEvent } from './types.ts'
 
-const PACKAGE_NAME = '@deepseek-ai/dsh-mission'
+const PACKAGE_NAME = '@qiaoy01/mission'
 
 /** Cordis companion plugin name. */
 export const name = 'mission-invariant'

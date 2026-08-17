@@ -15,7 +15,7 @@
 import { missionEventOf, registerMissionEventTypes } from "./domain.js";
 import { foldMission } from "./fold.js";
 import { validateEvent } from "./validate.js";
-const PACKAGE_NAME = '@deepseek-ai/dsh-mission';
+const PACKAGE_NAME = '@qiaoy01/mission';
 /** Cordis companion plugin name. */
 export const name = 'mission-invariant';
 /** No hard inject: the `invariants` service exists only in dev/test compositions. */

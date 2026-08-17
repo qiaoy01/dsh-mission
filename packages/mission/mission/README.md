@@ -59,7 +59,10 @@
 ## 安装与使用
 
 ```bash
-# 装进一个 dsh profile(会把 5 行 bundle patch 插入组合)
+# 从 npm 安装(已发布;会把 5 行 bundle patch 插入组合)
+dsh plugin --profile <name> add @qiaoy01/mission
+
+# 或从源码安装
 dsh plugin --profile <name> add file:path/to/dsh-mission
 
 # 在会话中,agent 通过三个模型工具使用 mission:

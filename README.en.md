@@ -69,7 +69,10 @@ tasks `PENDING / CLAIMED / DONE / FAILED` + derived `READY / BLOCKED`.
 ## Install & use
 
 ```bash
-# Install into a dsh profile (inserts a 5-row bundle patch into the composition)
+# Install from npm (published; inserts a 5-row bundle patch into the composition)
+dsh plugin --profile <name> add @qiaoy01/mission
+
+# Or install from source
 dsh plugin --profile <name> add file:path/to/dsh-mission
 
 # In a session, the agent drives the mission through three model tools:
