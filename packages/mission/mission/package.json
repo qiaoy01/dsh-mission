@@ -4,12 +4,19 @@
   "description": "Persistent long-horizon autonomous mission runtime for DeepSeek Harness: dependency DAG, independent verification, replan-on-failure, lease ownership.",
   "license": "MIT",
   "type": "module",
-  "private": true,
   "scripts": {
     "build": "node scripts/build.mjs"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": [
+    "lib/",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
