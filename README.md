@@ -7,6 +7,10 @@
 
 English | [中文](https://github.com/qiaoy01/dsh-mission/blob/main/README.zh-CN.md)
 
+[![npm version](https://img.shields.io/npm/v/@qiaoy01/mission)](https://www.npmjs.com/package/@qiaoy01/mission)
+[![license](https://img.shields.io/github/license/qiaoy01/dsh-mission)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/qiaoy01/dsh-mission/test.yml)](https://github.com/qiaoy01/dsh-mission/actions)
+
 ## What it is
 
 `dsh-mission` is a **pure-TypeScript cordis plugin** for DeepSeek Harness that
@@ -84,6 +88,20 @@ dsh plugin --profile <name> add file:path/to/dsh-mission
 After the model commits a plan, **the runtime takes over**: `mission-driver`
 claims tasks, dispatches real subagents, and verifies independently. The model
 should not execute tasks itself.
+
+## Quick start (30 seconds)
+
+```bash
+# 1. install the plugin into a dsh profile
+dsh plugin --profile web add @qiaoy01/mission
+
+# 2. in a session, ask the agent:
+#    "mission: build a small web game. Use mission_create, then mission_plan,
+#     then stop — the runtime will execute the tasks."
+#
+# The model creates and plans; mission-driver claims tasks, dispatches real
+# subagents, and independently verifies each one until the mission is COMPLETED.
+```
 
 Defaults are conservative (deterministic task selection, no automatic replan —
 zero model cost). Enable model strategies via the profile row config:

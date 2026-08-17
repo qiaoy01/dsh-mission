@@ -6,6 +6,10 @@
 
 [English](https://github.com/qiaoy01/dsh-mission/blob/main/README.md) | 中文
 
+[![npm version](https://img.shields.io/npm/v/@qiaoy01/mission)](https://www.npmjs.com/package/@qiaoy01/mission)
+[![license](https://img.shields.io/github/license/qiaoy01/dsh-mission)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/qiaoy01/dsh-mission/test.yml)](https://github.com/qiaoy01/dsh-mission/actions)
+
 ## 是什么
 
 `dsh-mission` 是 DeepSeek Harness 的**纯 TypeScript cordis 插件**,提供 dsh 缺失的
@@ -73,6 +77,20 @@ dsh plugin --profile <name> add file:path/to/dsh-mission
 
 模型提交计划后,**执行由运行时接管**(`mission-driver` 自动认领任务、派发真实子代理、
 独立验证)。模型不需要也不应该自己执行任务。
+
+## 快速上手(30 秒)
+
+```bash
+# 1. 把插件装进一个 dsh profile
+dsh plugin --profile web add @qiaoy01/mission
+
+# 2. 在会话中对 agent 说:
+#    "mission: 构建一个小型网页游戏。用 mission_create 创建,再用 mission_plan 提交计划,
+#     然后停止——任务由运行时执行。"
+#
+# 模型创建并规划;mission-driver 自动认领任务、派发真实子代理、独立验证每个任务,
+# 直到 mission COMPLETED。
+```
 
 默认策略保守(确定性选任务、不自动重规划,零模型开销);需要模型决策时在 profile 里配置:
 
