@@ -1,110 +1,124 @@
 # dsh-mission
 
-> **DeepSeek Harness 的长程自主 mission 运行时** —— 让 agent 能多日推进一个长期目标:
-> 跨会话、可独立验证、失败可重规划、崩溃可恢复的自主控制循环。
-> DAG(依赖任务图)是它的驱动/执行手段之一,不是运行时本身。
+> **A long-horizon autonomous mission runtime for DeepSeek Harness** — lets an
+> agent drive a long-term objective over days: a cross-session, independently
+> verifiable, replan-on-failure, crash-recoverable autonomous control loop.
+> The dependency DAG is one of its driving mechanisms, not the runtime itself.
 
-[English](README.en.md) | 中文
+English | [中文](README.zh-CN.md)
 
-## 是什么
+## What it is
 
-`dsh-mission` 是 DeepSeek Harness 的**纯 TypeScript cordis 插件**,提供 dsh 缺失的
-**长程自主 mission 运行时**:一个持久、可验证、崩溃可恢复的自主控制循环,把"一个长期目标"
-拆成带依赖的任务 DAG,由运行时自主推进,而不是靠单次对话一次性完成。
+`dsh-mission` is a **pure-TypeScript cordis plugin** for DeepSeek Harness that
+provides the long-horizon autonomous mission runtime dsh lacks: a durable,
+verifiable, crash-recoverable control loop that breaks a long-term objective
+into a dependency DAG of tasks and advances it autonomously — instead of
+finishing everything in one conversation.
 
-核心原则:**agent 提议,环境裁决,运行时提交**。
+Core principle: **agents propose, the environment adjudicates, the runtime commits.**
 
-- agent 的计划、执行、声明永远**非权威**;
-- 每个工作项:`task/report` = 对环境的**声明**(非权威),`task/verify` = 独立地把声明与
-  **环境反馈**对齐(权威);
-- **执行者不能自证完成**——只有通过确定性校验、以单个事件原子写入会话日志的状态变更才是权威。
+- Agent plans, executions, and claims are **never authoritative**;
+- For every work item: `task/report` is a **declaration** about the environment
+  (not authoritative); `task/verify` independently **aligns** the declaration
+  with environment feedback (authoritative);
+- **Workers cannot self-certify** — only state changes that pass deterministic
+  validation and commit atomically as a single session event are authoritative.
 
-## 为什么是 dsh 需要它
+## Why dsh needs it
 
-| dsh 已有 | dsh-mission 的独特增量 |
+| What dsh already has | What dsh-mission adds |
 |---|---|
-| goal(单目标记账,可自证完成) | **依赖 DAG + 派生就绪/阻塞**,失败支线可重规划(保留 DONE 成果) |
-| workflow(一次性扇出脚本) | **持久、可恢复、跨会话的任务状态机** |
-| schedule(纯时间触发) | **依赖触发**(上游 DONE → 下游 READY) |
-| subagent(执行单元) | **独立验证**——执行者不能自证,`report` ≠ `verify` |
-| — | **lease 所有权 + 惰性回收 + 崩溃恢复** |
+| goal (single-objective ledger, caller self-certifies) | **Dependency DAG + derived readiness/blocked**, failed branches replan while **DONE work is preserved** |
+| workflow (one-shot fan-out scripts) | **Durable, resumable, cross-session task state machine** |
+| schedule (pure time triggers) | **Dependency triggers** (upstream DONE → downstream READY) |
+| subagent (execution unit) | **Independent verification** — workers cannot self-certify, `report` ≠ `verify` |
+| — | **Lease ownership + lazy reclamation + crash recovery** |
 
-## 特性
+## Features
 
-- **事件溯源持久化**:`mission/*` 会话事件,单事件 = 原子提交,无独立数据库;
-- **版本守卫**:`revision` CAS(照搬 dsh-goal 的 `GoalRef` 模式);
-- **自主驱动宿主**(`mission-driver`):监听 `mission/changed`,自动执行
-  认领 → 子代理执行 → 声明 → 独立验证 → 提交 的循环;
-- **惰性 lease 回收**:过期且无声明的任务可被回收重做;**在飞任务守卫**杜绝重复派发;
-- **失败重规划**:mission 卡死时产出新 revision,已 DONE 且 spec 未变的任务跨 revision 保留;
-- **模型策略可选**:`llmDecider`(选下一任务)/ `llmReplanner`(重规划)/ `userApprovalGate`(审批闸);
-- **UI 数据面**:`mission` session projection 单元;
-- **容错伴生**:`mission-invariant` 在 `invariants` 服务存在时自动注册审计,不存在时静默跳过
-  (生产 profile 无需额外配置即可加载)。
+- **Event-sourced persistence**: `mission/*` session events; one event = one
+  atomic commit; no separate database;
+- **Version guard**: `revision` CAS (mirrors dsh-goal's `GoalRef` pattern);
+- **Autonomous driver host** (`mission-driver`): listens to `mission/changed`
+  and runs claim → subagent execute → report → verify → commit automatically;
+- **Lazy lease reclamation**: an expired, unreported claim can be reclaimed and
+  redone; an **in-flight task guard** prevents duplicate dispatch;
+- **Replan on failure**: a stuck mission gets a new revision while DONE tasks
+  with unchanged specs carry over;
+- **Optional model strategies**: `llmDecider` (pick the next task) /
+  `llmReplanner` (replan) / `userApprovalGate` (approval gate);
+- **UI data plane**: a `mission` session-projection unit;
+- **Tolerant companion**: `mission-invariant` registers its audit whenever the
+  `invariants` service exists, and is a no-op otherwise (production profiles
+  load without extra configuration).
 
-## 事件词汇(`mission/*`)
+## Event vocabulary (`mission/*`)
 
-| 事件 | 语义 |
+| Event | Meaning |
 |---|---|
-| `mission/created` | 创建 mission |
-| `mission/plan-committed` | 提交整次计划快照(revision +1,DONE 且 spec 不变的任务延续) |
-| `mission/task-claimed` | lease 认领 |
-| `mission/task-reported` | agent 对环境的**声明**(不产生 DONE) |
-| `mission/task-verified` | 独立对齐环境反馈 → DONE/FAILED |
-| `mission/cancelled` | 显式终止 |
+| `mission/created` | Create a mission |
+| `mission/plan-committed` | Commit a full plan snapshot (revision +1; DONE tasks with unchanged specs carry over) |
+| `mission/task-claimed` | Claim a task with a lease |
+| `mission/task-reported` | The agent's **declaration** about the environment (never DONE by itself) |
+| `mission/task-verified` | Independently align the declaration with environment feedback → DONE/FAILED |
+| `mission/cancelled` | Explicit cancellation |
 
-状态:mission `CREATED / RUNNING / COMPLETED / FAILED / CANCELLED`;
-任务 `PENDING / CLAIMED / DONE / FAILED` + 派生 `READY / BLOCKED`。
+States: mission `CREATED / RUNNING / COMPLETED / FAILED / CANCELLED`;
+tasks `PENDING / CLAIMED / DONE / FAILED` + derived `READY / BLOCKED`.
 
-## 安装与使用
+## Install & use
 
 ```bash
-# 从 npm 安装(已发布;会把 5 行 bundle patch 插入组合)
+# Install from npm (published; inserts a 5-row bundle patch into the composition)
 dsh plugin --profile <name> add @qiaoy01/mission
 
-# 或从源码安装
+# Or install from source
 dsh plugin --profile <name> add file:path/to/dsh-mission
 
-# 在会话中,agent 通过三个模型工具使用 mission:
-#   mission_create   —— 创建 mission
-#   mission_plan     —— 提交任务 DAG(revision 必须 = 当前 + 1)
-#   mission_status   —— 读取当前状态
+# In a session, the agent drives the mission through three model tools:
+#   mission_create   — create a mission
+#   mission_plan     — commit a task DAG (revision must equal current + 1)
+#   mission_status   — read the current state
 ```
 
-模型提交计划后,**执行由运行时接管**(`mission-driver` 自动认领任务、派发真实子代理、
-独立验证)。模型不需要也不应该自己执行任务。
+After the model commits a plan, **the runtime takes over**: `mission-driver`
+claims tasks, dispatches real subagents, and verifies independently. The model
+should not execute tasks itself.
 
-默认策略保守(确定性选任务、不自动重规划,零模型开销);需要模型决策时在 profile 里配置:
+Defaults are conservative (deterministic task selection, no automatic replan —
+zero model cost). Enable model strategies via the profile row config:
 
 ```yaml
 - id: mission-driver
   config:
-    decider: llm     # 模型选择下一任务
-    replan: true     # 卡死时模型重规划
+    decider: llm     # the model picks the next task
+    replan: true     # the model replans when the mission is stuck
 ```
 
-## 构建与测试
+## Build & test
 
 ```bash
 cd packages/mission/mission
-npm run build          # 自动发现本机 tsc;typecheck + emit 到 lib/
-# 五套测试,全部隔离运行:
-node --experimental-strip-types tests/domain.test.mjs    # 纯函数域模型
-node tests/service.test.mjs                               # 运行时(真实 cordis/session/agent)
-node tests/driver.test.mjs                                # driver 循环(mock 执行器)
-node tests/driver-host.test.mjs                           # 驱动宿主(stub subagents)
-node --experimental-strip-types tests/projection.test.mjs # 会话投影单元
+npm run build          # auto-discovers a local tsc; typecheck + emit to lib/
+# Five test suites, all run in isolation:
+node --experimental-strip-types tests/domain.test.mjs    # pure domain model
+node tests/service.test.mjs                               # runtime (real cordis/session/agent)
+node tests/driver.test.mjs                                # driver loop (mock executor)
+node tests/driver-host.test.mjs                           # driver host (stubbed subagents)
+node --experimental-strip-types tests/projection.test.mjs # session-projection unit
 ```
 
-## 验证状态
+## Status
 
-- 阶段 A(域模型)✅ · 阶段 B(服务 + 工具 + 伴生)✅ · 阶段 C(driver 循环)✅ ·
-  阶段 D(重规划 / lease 回收 / 模型决策 / 审批闸)✅ · 阶段 E(投影 ✅,浏览器 UI 待做);
-- **真实组合验证**:7 任务 DAG 由真实子代理自主推进至 COMPLETED,
-  每个任务独立验证通过,全程零失败、零重复派发;
-- 更多设计细节见 [`docs/design.md`](docs/design.md),dsh 机制调研与去重依据见
-  [`docs/research.md`](docs/research.md)。
+- Stage A (domain model) ✅ · Stage B (service + tools + companion) ✅ ·
+  Stage C (driver loop) ✅ · Stage D (replan / lease reclamation / model
+  decisions / approval gate) ✅ · Stage E (projection ✅, browser UI pending);
+- **Verified in a real composition**: a 7-task DAG driven end-to-end by real
+  subagents to COMPLETED, every task independently verified, zero failures and
+  zero duplicate dispatches;
+- Design details: [`docs/design.md`](docs/design.md); dsh mechanism survey and
+  deduplication rationale: [`docs/research.md`](docs/research.md).
 
-## 许可
+## License
 
-MIT —— 详见 [LICENSE](LICENSE)。
+MIT — see [LICENSE](LICENSE).
