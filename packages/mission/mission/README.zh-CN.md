@@ -65,15 +65,26 @@
 ```bash
 # 从 npm 安装(已发布;会把 5 行 bundle patch 插入组合)
 dsh plugin --profile <name> add @qiaoy01/mission
-
-# 或从源码安装
-dsh plugin --profile <name> add file:path/to/dsh-mission
-
-# 在会话中,agent 通过三个模型工具使用 mission:
-#   mission_create   —— 创建 mission
-#   mission_plan     —— 提交任务 DAG(revision 必须 = 当前 + 1)
-#   mission_status   —— 读取当前状态
 ```
+
+### 从源码安装(给贡献者)
+
+npm 包已预构建(`lib/`),**普通使用者只需上面一条命令**。想改代码或审查源码时才需要从源码构建:
+
+```bash
+git clone https://github.com/qiaoy01/dsh-mission.git
+cd dsh-mission/packages/mission/mission   # bundle 在这个子目录
+npm install                                # 构建依赖,锁定到运行中 harness 的 peer 版本
+npm run build                              # typecheck + emit 到 lib/
+dsh plugin --profile <name> add file:<此目录的绝对路径>
+```
+
+> `file:` 路径必须指向 `packages/mission/mission`(其 package.json 声明了
+> `dsh.bundle.patch` → `cordis.patch.yml`),不是仓库根。改完源码后要重新
+> `npm run build` 并重新 add。
+
+在会话中,agent 通过三个模型工具使用 mission:`mission_create`(创建)、
+`mission_plan`(提交任务 DAG,revision 必须 = 当前 + 1)、`mission_status`(读取状态)。
 
 模型提交计划后,**执行由运行时接管**(`mission-driver` 自动认领任务、派发真实子代理、
 独立验证)。模型不需要也不应该自己执行任务。

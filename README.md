@@ -75,15 +75,28 @@ tasks `PENDING / CLAIMED / DONE / FAILED` + derived `READY / BLOCKED`.
 ```bash
 # Install from npm (published; inserts a 5-row bundle patch into the composition)
 dsh plugin --profile <name> add @qiaoy01/mission
-
-# Or install from source
-dsh plugin --profile <name> add file:path/to/dsh-mission
-
-# In a session, the agent drives the mission through three model tools:
-#   mission_create   — create a mission
-#   mission_plan     — commit a task DAG (revision must equal current + 1)
-#   mission_status   — read the current state
 ```
+
+### Install from source (for contributors)
+
+The published npm package ships prebuilt (`lib/`), so **consumers only need the
+one command above**. Build from source when you want to modify or review the code:
+
+```bash
+git clone https://github.com/qiaoy01/dsh-mission.git
+cd dsh-mission/packages/mission/mission   # the bundle lives in this subdirectory
+npm install                                # build deps, pinned to the running-harness peer versions
+npm run build                              # typecheck + emit lib/
+dsh plugin --profile <name> add file:<absolute path to this directory>
+```
+
+> The `file:` path must point to `packages/mission/mission` (the package whose
+> manifest declares `dsh.bundle.patch` → `cordis.patch.yml`), not the repo root.
+> After changing source, re-run `npm run build` and re-add the package.
+
+In a session, the agent drives the mission through three model tools:
+`mission_create` (create a mission), `mission_plan` (commit a task DAG; revision
+must equal current + 1), and `mission_status` (read the current state).
 
 After the model commits a plan, **the runtime takes over**: `mission-driver`
 claims tasks, dispatches real subagents, and verifies independently. The model
