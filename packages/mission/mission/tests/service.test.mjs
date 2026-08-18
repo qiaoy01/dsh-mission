@@ -122,5 +122,26 @@ console.log('7. lease reclamation at the service boundary')
   check('report with the new token accepted', reported.tasks.find(t => t.id === 'combat-v2').stored === 'CLAIMED')
 }
 
+console.log('8. successive missions at the service boundary')
+{
+  // A fresh agent completes a full mission, then the SAME session opens the
+  // next mission (long-lived projects run mission after mission).
+  const { agent: a2 } = stubAgent(`mission-successive-${Math.random()}`)
+  ctx.agents.register(a2)
+  ctx.mission.create(a2, { objective: 'g1' })
+  ctx.mission.plan(a2, { revision: 1, tasks: [task('a', 'A')], dependencies: [] })
+  ctx.mission.claim(a2, { taskId: 'a', lease: lease('lt-1') })
+  ctx.mission.report(a2, { taskId: 'a', token: 'lt-1', exitCode: 0 })
+  const done = ctx.mission.verify(a2, { taskId: 'a', verifierType: 'exit_code', passed: true })
+  check('first mission COMPLETED', done.status === 'COMPLETED')
+
+  const next = ctx.mission.create(a2, { objective: 'g2' })
+  check('new mission created after COMPLETED', next.id !== done.id && next.objective === 'g2')
+  check('status now shows the LATEST mission', ctx.mission.status(a2).id === next.id)
+
+  throws('create rejected while the new mission is still active (CREATED)',
+    () => ctx.mission.create(a2, { objective: 'g3' }), 'MISSION_ALREADY_EXISTS')
+}
+
 console.log(failures === 0 ? '\nALL RUNTIME TESTS PASS' : `\n${failures} FAILURES`)
 process.exit(failures === 0 ? 0 : 1)

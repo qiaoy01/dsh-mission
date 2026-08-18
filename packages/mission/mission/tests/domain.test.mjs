@@ -246,5 +246,47 @@ console.log('7. lease reclamation')
     && reclaimed.get(M).tasks.get('a').stored === 'CLAIMED')
 }
 
+// --- 8. successive missions: a terminal mission lets a new one open ---------
+console.log('8. successive missions (long-lived projects)')
+{
+  const now = 1000
+  const plan1 = { type: 'mission/plan-committed', missionId: M, revision: 1, tasks: [spec('a')], dependencies: [] }
+  const completeChain = [
+    { type: 'mission/created', missionId: M, objective: 'g1' },
+    plan1,
+    { type: 'mission/task-claimed', missionId: M, taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: now + 1000, attempt: 1 } },
+    { type: 'mission/task-reported', missionId: M, taskId: 'a', token: 'lt', exitCode: 0 },
+    { type: 'mission/task-verified', missionId: M, taskId: 'a', verifierType: 'x', passed: true },
+  ]
+  const newCreate = { type: 'mission/created', missionId: 'm2', objective: 'g2' }
+
+  const created = foldMission([{ type: 'mission/created', missionId: M, objective: 'g1' }])
+  check('create rejected while a CREATED (draft) mission exists',
+    validateEvent(created, newCreate, now).length > 0)
+
+  const running = foldMission([{ type: 'mission/created', missionId: M, objective: 'g1' }, plan1])
+  check('create rejected while RUNNING',
+    validateEvent(running, newCreate, now).length > 0)
+
+  const completed = foldMission(completeChain)
+  check('create ALLOWED after COMPLETED',
+    validateEvent(completed, newCreate, now).length === 0)
+
+  const failed = foldMission(completeChain.map((e, i) => i === 4 ? { ...e, passed: false } : e))
+  check('create ALLOWED after FAILED',
+    validateEvent(failed, newCreate, now).length === 0)
+
+  const cancelled = foldMission([
+    { type: 'mission/created', missionId: M, objective: 'g1' },
+    plan1,
+    { type: 'mission/cancelled', missionId: M },
+  ])
+  check('create ALLOWED after CANCELLED',
+    validateEvent(cancelled, newCreate, now).length === 0)
+
+  const both = foldMission([...completeChain, newCreate])
+  check('world keeps both missions (Map supports successive missions)', both.size === 2)
+}
+
 console.log(failures === 0 ? '\nALL TESTS PASS' : `\n${failures} FAILURES`)
 process.exit(failures === 0 ? 0 : 1)

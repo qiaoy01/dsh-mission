@@ -56,5 +56,21 @@ console.log('2. task lifecycle and attempt in the projection')
   check('mission COMPLETED', v.mission?.status === 'COMPLETED')
 }
 
+console.log('3. successive missions: the projection shows the LATEST one')
+{
+  let s = initMissionProjection()
+  for (const e of [
+    ev('mission/created', { missionId: 'm1', objective: 'g1' }, 1),
+    ev('mission/plan-committed', { missionId: 'm1', revision: 1, tasks: [spec('a', 'A')], dependencies: [] }, 2),
+    ev('mission/task-claimed', { missionId: 'm1', taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: 9999, attempt: 1 } }, 3),
+    ev('mission/task-reported', { missionId: 'm1', taskId: 'a', token: 'lt', exitCode: 0 }, 4),
+    ev('mission/task-verified', { missionId: 'm1', taskId: 'a', verifierType: 'x', passed: true }, 5),
+    // the next mission opens after the previous COMPLETED
+    ev('mission/created', { missionId: 'm2', objective: 'g2' }, 6),
+  ]) s = applyMissionProjection(s, e)
+  const v = viewMissionProjection(s)
+  check('projection shows the latest mission (m2)', v.mission?.id === 'm2' && v.mission?.objective === 'g2')
+}
+
 console.log(failures === 0 ? '\nALL PROJECTION TESTS PASS' : `\n${failures} FAILURES`)
 process.exit(failures === 0 ? 0 : 1)

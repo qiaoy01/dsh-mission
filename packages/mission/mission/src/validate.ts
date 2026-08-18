@@ -45,10 +45,17 @@ export function validateEvent(world: MissionWorld, event: MissionEvent, now: num
   const m = world.get(event.missionId)
 
   switch (event.type) {
-    case 'mission/created':
-      if (world.size > 0) v.push('a mission already exists in this session')
+    case 'mission/created': {
+      // A session may open a NEW mission once the previous one is terminal
+      // (COMPLETED / FAILED / CANCELLED) — long-lived projects run successive
+      // missions over months. Only an ACTIVE (non-terminal) mission blocks a
+      // fresh create; completed history is preserved in the same session log.
+      const active = [...world.values()].some((existing) =>
+        existing.status !== 'COMPLETED' && existing.status !== 'FAILED' && existing.status !== 'CANCELLED')
+      if (active) v.push('an active mission already exists in this session')
       else if (event.objective.trim() === '') v.push('objective must be non-empty')
       break
+    }
 
     case 'mission/plan-committed': {
       if (!m) {

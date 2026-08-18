@@ -49,7 +49,10 @@ export function applyMissionProjection(state, event) {
 /** View: fold the collected stream with the authoritative domain fold. */
 export function viewMissionProjection(state) {
     const world = foldMission(state.events);
-    const m = [...world.values()][0];
+    // The LATEST mission is the current one — long-lived sessions run successive
+    // missions (one active at a time) after the previous one reaches a terminal
+    // state.
+    const m = [...world.values()].at(-1);
     if (m === undefined)
         return { mission: null };
     return { mission: serializeMission(m) };

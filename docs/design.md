@@ -185,7 +185,7 @@ interface MissionState {
 ### 域形状 —— 已拍板(阶段 A 落地)
 
 1. **mission 归属**:状态住**拥有者会话**(同 goal/schedule);任务 subagent child 会话只承载执行。
-2. **单/多 mission**:先**单活跃 mission/会话**;fold 写成 `Map<missionId, MissionState>`,多 mission 留后路。
+2. **单/多 mission**:✅ 已定——**单活跃 mission + 接续开发**。fold 是 `Map<missionId, MissionState>`(天然多 mission);`mission/created` 只在存在**非终态** mission 时拒绝——COMPLETED/FAILED/CANCELLED 后可开下一个 mission。同一会话/项目按月按年连续迭代:一个 mission 接着一个 mission,读取端(`ctx.mission` / 投影)取**最新** mission,历史 mission 全部保留在会话日志中可审计。
 
 ### 运行时策略 —— 阶段 B/C/D 落地
 

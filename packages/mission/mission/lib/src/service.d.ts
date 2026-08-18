@@ -58,7 +58,7 @@ export declare class MissionService extends Service {
     private assertLive;
     /** Fold the committed mission events of one session into a world. */
     private foldWorld;
-    /** The single current mission state, or undefined before creation. */
+    /** The latest mission state (successive missions per session), or undefined before creation. */
     private currentMission;
     private requireMission;
     /** Validate one candidate event against the current fold, then append it. */

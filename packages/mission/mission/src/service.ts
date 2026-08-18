@@ -115,8 +115,12 @@ export class MissionService extends Service {
   create(agent: Agent, request: CreateMissionRequest): MissionView {
     const objective = resolveObjective(request.objective)
     this.assertLive(agent)
-    if (this.currentMission(agent) !== undefined) {
-      throw new MissionError('a mission already exists in this session', 'MISSION_ALREADY_EXISTS')
+    // Only an ACTIVE (non-terminal) mission blocks a new one; a COMPLETED /
+    // FAILED / CANCELLED mission lets the session open the next mission.
+    const active = [...this.foldWorld(agent).values()].some((m) =>
+      m.status !== 'COMPLETED' && m.status !== 'FAILED' && m.status !== 'CANCELLED')
+    if (active) {
+      throw new MissionError('an active mission already exists in this session', 'MISSION_ALREADY_EXISTS')
     }
     const missionId = `mission-${randomUUID()}`
     this.commit(agent, { type: 'mission/created', missionId, objective })
@@ -195,10 +199,10 @@ export class MissionService extends Service {
     return foldMission(events)
   }
 
-  /** The single current mission state, or undefined before creation. */
+  /** The latest mission state (successive missions per session), or undefined before creation. */
   private currentMission(agent: Agent): MissionState | undefined {
     this.assertLive(agent)
-    return [...this.foldWorld(agent).values()][0]
+    return [...this.foldWorld(agent).values()].at(-1)
   }
 
   private requireMission(agent: Agent): MissionState {
