@@ -193,5 +193,19 @@ console.log('9. maxReplans bounds the loop (stage D)')
   check('replanned exactly twice (revision 3)', view.revision === 3)
 }
 
+console.log('10. a cancelled mission stops the driver (clean terminate)')
+{
+  const { ctx, agent } = await harness()
+  plan(agent, ctx, 1, [task('a', 'A')], [])
+  ctx.mission.cancel(agent)
+  const calls = []
+  const view = await driveMission(agent, ctx.mission, {
+    executor: async (_a, t) => { calls.push(t.id); return { exitCode: 0 } },
+    verifier: deterministicVerifier(),
+  })
+  check('driver returns the CANCELLED view', view.status === 'CANCELLED')
+  check('no task executed after cancel', calls.length === 0)
+}
+
 console.log(failures === 0 ? '\nALL DRIVER TESTS PASS' : `\n${failures} FAILURES`)
 process.exit(failures === 0 ? 0 : 1)

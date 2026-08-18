@@ -92,4 +92,18 @@ export function apply(ctx: Context): void {
     },
     presentCall: () => present('Read mission status'),
   }))
+
+  ctx.tools.register(defineTool({
+    name: 'mission_cancel',
+    description: 'Cancel the current mission: it becomes CANCELLED (terminal) and the runtime stops '
+      + 'claiming/executing further tasks. Use it to abort a mission that is going the wrong way; '
+      + 'a new mission can be created afterwards in the same session.',
+    parameters: {},
+    output: STRING_OUTPUT,
+    execute(_args, exec) {
+      const agent = liveAgent(exec)
+      return Promise.resolve(JSON.stringify(ctx.mission.cancel(agent)))
+    },
+    presentCall: () => present('Cancel mission'),
+  }))
 }

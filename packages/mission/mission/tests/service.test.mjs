@@ -143,5 +143,20 @@ console.log('8. successive missions at the service boundary')
     () => ctx.mission.create(a2, { objective: 'g3' }), 'MISSION_ALREADY_EXISTS')
 }
 
+console.log('9. cancel at the service boundary')
+{
+  const { agent: a3 } = stubAgent(`mission-cancel-${Math.random()}`)
+  ctx.agents.register(a3)
+  const created = ctx.mission.create(a3, { objective: 'g1' })
+  ctx.mission.plan(a3, { revision: 1, tasks: [task('a', 'A')], dependencies: [] })
+  const cancelled = ctx.mission.cancel(a3)
+  check('cancel → CANCELLED', cancelled.status === 'CANCELLED')
+  throws('plan rejected after CANCELLED',
+    () => ctx.mission.plan(a3, { revision: 2, tasks: [task('b', 'B')], dependencies: [] }), 'MISSION_INVALID_TRANSITION')
+  const next = ctx.mission.create(a3, { objective: 'g2' })
+  check('create allowed after CANCELLED (rollback + start over)', next.objective === 'g2')
+  check('created.id !== cancelled.id', created.id !== next.id)
+}
+
 console.log(failures === 0 ? '\nALL RUNTIME TESTS PASS' : `\n${failures} FAILURES`)
 process.exit(failures === 0 ? 0 : 1)

@@ -62,6 +62,11 @@ export function validateEvent(world, event, now) {
                 v.push('unknown mission');
                 break;
             }
+            // A COMPLETED mission is done; a CANCELLED one was explicitly stopped.
+            // FAILED stays open for replan-on-failure; RUNNING allows model replans.
+            if (m.status === 'COMPLETED' || m.status === 'CANCELLED') {
+                v.push(`mission is ${m.status}: no further plans`);
+            }
             if (event.revision !== m.revision + 1) {
                 v.push(`revision must increment by 1 (current ${m.revision}, got ${event.revision})`);
             }
@@ -83,6 +88,8 @@ export function validateEvent(world, event, now) {
                 v.push('unknown mission');
                 break;
             }
+            if (m.status === 'CANCELLED')
+                v.push('mission is cancelled: no further task transitions');
             const t = m.tasks.get(event.taskId);
             if (!t) {
                 v.push('unknown task');
@@ -112,6 +119,8 @@ export function validateEvent(world, event, now) {
                 v.push('unknown mission');
                 break;
             }
+            if (m.status === 'CANCELLED')
+                v.push('mission is cancelled: no further task transitions');
             const t = m.tasks.get(event.taskId);
             if (!t) {
                 v.push('unknown task');
@@ -126,6 +135,8 @@ export function validateEvent(world, event, now) {
                 v.push('unknown mission');
                 break;
             }
+            if (m.status === 'CANCELLED')
+                v.push('mission is cancelled: no further task transitions');
             const t = m.tasks.get(event.taskId);
             if (!t) {
                 v.push('unknown task');

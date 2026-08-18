@@ -177,14 +177,25 @@ console.log('5. invariants')
     validateEvent(done, { type: 'mission/task-verified', missionId: M, taskId: 'a', verifierType: 'x', passed: true }, now).length > 0)
   check('reject cancel of COMPLETED mission',
     validateEvent(done, { type: 'mission/cancelled', missionId: M }, now).length > 0)
+  check('reject plan on a COMPLETED mission (start a new mission instead)',
+    validateEvent(done, { type: 'mission/plan-committed', missionId: M, revision: 2,
+      tasks: [spec('a')], dependencies: [] }, now).length > 0)
 
-  // DONE-task spec is immutable across replan: same spec allowed, changed spec rejected
+  // DONE-task spec is immutable across a replan WHILE RUNNING: same spec
+  // allowed, changed spec rejected.
+  const runningWithDone = foldMission([
+    { type: 'mission/created', missionId: M, objective: 'g' },
+    { type: 'mission/plan-committed', missionId: M, revision: 1, tasks: [spec('a'), spec('b')], dependencies: [] },
+    { type: 'mission/task-claimed', missionId: M, taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: now + 1000, attempt: 1 } },
+    { type: 'mission/task-reported', missionId: M, taskId: 'a', token: 'lt', exitCode: 0 },
+    { type: 'mission/task-verified', missionId: M, taskId: 'a', verifierType: 'x', passed: true },
+  ])
   check('allow re-committing DONE task with same spec',
-    validateEvent(done, { type: 'mission/plan-committed', missionId: M, revision: 2,
-      tasks: [spec('a')], dependencies: [] }, now).length === 0)
+    validateEvent(runningWithDone, { type: 'mission/plan-committed', missionId: M, revision: 2,
+      tasks: [spec('a'), spec('b')], dependencies: [] }, now).length === 0)
   check('reject changing spec of DONE task on replan',
-    validateEvent(done, { type: 'mission/plan-committed', missionId: M, revision: 2,
-      tasks: [spec('a', 'renamed')], dependencies: [] }, now).length > 0)
+    validateEvent(runningWithDone, { type: 'mission/plan-committed', missionId: M, revision: 2,
+      tasks: [spec('a', 'renamed'), spec('b')], dependencies: [] }, now).length > 0)
 
   // isAcyclic helper
   check('isAcyclic true', isAcyclic(['a', 'b'], [{ taskId: 'b', dependsOn: 'a' }]) === true)
@@ -286,6 +297,37 @@ console.log('8. successive missions (long-lived projects)')
 
   const both = foldMission([...completeChain, newCreate])
   check('world keeps both missions (Map supports successive missions)', both.size === 2)
+}
+
+// --- 9. cancel semantics: terminate cleanly, no task transitions after ------
+console.log('9. cancel semantics (terminate + clean stop)')
+{
+  const now = 1000
+  const running = [
+    { type: 'mission/created', missionId: M, objective: 'g' },
+    { type: 'mission/plan-committed', missionId: M, revision: 1, tasks: [spec('a')], dependencies: [] },
+  ]
+  const cancelEvent = { type: 'mission/cancelled', missionId: M }
+
+  check('cancel allowed while RUNNING', validateEvent(foldMission(running), cancelEvent, now).length === 0)
+
+  const cancelled = foldMission([...running, cancelEvent])
+  check('plan rejected after CANCELLED',
+    validateEvent(cancelled, { type: 'mission/plan-committed', missionId: M, revision: 2, tasks: [spec('b')], dependencies: [] }, now).length > 0)
+  check('claim rejected after CANCELLED',
+    validateEvent(cancelled, { type: 'mission/task-claimed', missionId: M, taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: now + 1000, attempt: 1 } }, now).length > 0)
+  const claimed = foldMission([...running,
+    { type: 'mission/task-claimed', missionId: M, taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: now + 1000, attempt: 1 } }])
+  const cancelledAfterClaim = foldMission([...running,
+    { type: 'mission/task-claimed', missionId: M, taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: now + 1000, attempt: 1 } },
+    cancelEvent])
+  check('report rejected after CANCELLED',
+    validateEvent(cancelledAfterClaim, { type: 'mission/task-reported', missionId: M, taskId: 'a', token: 'lt', exitCode: 0 }, now).length > 0)
+  check('verify rejected after CANCELLED',
+    validateEvent(cancelledAfterClaim, { type: 'mission/task-verified', missionId: M, taskId: 'a', verifierType: 'x', passed: true }, now).length > 0)
+  check('cancel rejected after CANCELLED', validateEvent(cancelled, cancelEvent, now).length > 0)
+  check('claim still fine before cancel',
+    validateEvent(foldMission([...running, { type: 'mission/task-claimed', missionId: M, taskId: 'a', lease: { owner: 'w', token: 'lt', expiresAt: now + 1000, attempt: 1 } }]), cancelEvent, now).length === 0)
 }
 
 console.log(failures === 0 ? '\nALL TESTS PASS' : `\n${failures} FAILURES`)
