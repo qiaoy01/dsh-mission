@@ -1,3 +1,11 @@
 node_modules/
 .dsh-test/
+.dsh-test2/
 backups/
+.pnpm-store/
+.comfy-temp/
+.comfy-user/
+slides/
+blog/
+AGENTS.md
+*.log
