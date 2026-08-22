@@ -84,14 +84,14 @@ one command above**. Build from source when you want to modify or review the cod
 
 ```bash
 git clone https://github.com/qiaoy01/dsh-mission.git
-cd dsh-mission/packages/mission/mission   # the bundle lives in this subdirectory
+cd dsh-mission   # the bundle lives at this repo root
 npm install                                # build deps, pinned to the running-harness peer versions
 npm run build                              # typecheck + emit lib/
-dsh plugin --profile <name> add file:<absolute path to this directory>
+dsh plugin --profile <name> add file:.
 ```
 
-> The `file:` path must point to `packages/mission/mission` (the package whose
-> manifest declares `dsh.bundle.patch` → `cordis.patch.yml`), not the repo root.
+> `file:.` points at the repo root you just `cd`'d into — whose `package.json`
+> declares `dsh.bundle.patch` → `cordis.patch.yml`.
 > After changing source, re-run `npm run build` and re-add the package.
 
 In a session, the agent drives the mission through three model tools:
@@ -129,7 +129,6 @@ zero model cost). Enable model strategies via the profile row config:
 ## Build & test
 
 ```bash
-cd packages/mission/mission
 npm run build          # auto-discovers a local tsc; typecheck + emit to lib/
 # Five test suites, all run in isolation:
 node --experimental-strip-types tests/domain.test.mjs    # pure domain model
@@ -146,10 +145,7 @@ node --experimental-strip-types tests/projection.test.mjs # session-projection u
   decisions / approval gate) ✅ · Stage E (projection ✅, browser UI pending);
 - **Verified in a real composition**: a 7-task DAG driven end-to-end by real
   subagents to COMPLETED, every task independently verified, zero failures and
-  zero duplicate dispatches;
-- Design details: [docs/design.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/design.md);
-  dsh mechanism survey and deduplication rationale:
-  [docs/research.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/research.md).
+  zero duplicate dispatches.
 
 ## License
 

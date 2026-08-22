@@ -14,32 +14,25 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: packages/mission/mission/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install
-        working-directory: packages/mission/mission
         run: npm install
 
       - name: Build (typecheck + emit lib/)
-        working-directory: packages/mission/mission
         run: npm run build
 
       - name: Domain tests (pure, zero dsh deps)
-        working-directory: packages/mission/mission
         run: node --experimental-strip-types tests/domain.test.mjs
 
       - name: Runtime tests (real cordis/session/agent)
-        working-directory: packages/mission/mission
         run: node tests/service.test.mjs
 
       - name: Driver loop tests
-        working-directory: packages/mission/mission
         run: node tests/driver.test.mjs
 
       - name: Driver host tests
-        working-directory: packages/mission/mission
         run: node tests/driver-host.test.mjs
 
       - name: Projection tests
-        working-directory: packages/mission/mission
         run: node --experimental-strip-types tests/projection.test.mjs

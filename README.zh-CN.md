@@ -73,14 +73,14 @@ npm 包已预构建(`lib/`),**普通使用者只需上面一条命令**。想改
 
 ```bash
 git clone https://github.com/qiaoy01/dsh-mission.git
-cd dsh-mission/packages/mission/mission   # bundle 在这个子目录
+cd dsh-mission   # bundle 就在仓库根
 npm install                                # 构建依赖,锁定到运行中 harness 的 peer 版本
 npm run build                              # typecheck + emit 到 lib/
-dsh plugin --profile <name> add file:<此目录的绝对路径>
+dsh plugin --profile <name> add file:.
 ```
 
-> `file:` 路径必须指向 `packages/mission/mission`(其 package.json 声明了
-> `dsh.bundle.patch` → `cordis.patch.yml`),不是仓库根。改完源码后要重新
+> `file:.` 指向仓库根(其 package.json 声明了
+> `dsh.bundle.patch` → `cordis.patch.yml`),因为你刚 `cd` 进去的就是仓库根。改完源码后要重新
 > `npm run build` 并重新 add。
 
 在会话中,agent 通过三个模型工具使用 mission:`mission_create`(创建)、
@@ -115,7 +115,6 @@ dsh plugin --profile web add @qiaoy01/mission
 ## 构建与测试
 
 ```bash
-cd packages/mission/mission
 npm run build          # 自动发现本机 tsc;typecheck + emit 到 lib/
 # 五套测试,全部隔离运行:
 node --experimental-strip-types tests/domain.test.mjs    # 纯函数域模型
@@ -130,9 +129,7 @@ node --experimental-strip-types tests/projection.test.mjs # 会话投影单元
 - 阶段 A(域模型)✅ · 阶段 B(服务 + 工具 + 伴生)✅ · 阶段 C(driver 循环)✅ ·
   阶段 D(重规划 / lease 回收 / 模型决策 / 审批闸)✅ · 阶段 E(投影 ✅,浏览器 UI 待做);
 - **真实组合验证**:7 任务 DAG 由真实子代理自主推进至 COMPLETED,
-  每个任务独立验证通过,全程零失败、零重复派发;
-- 更多设计细节见 [docs/design.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/design.md),
-  dsh 机制调研与去重依据见 [docs/research.md](https://github.com/qiaoy01/dsh-mission/blob/main/docs/research.md)。
+  每个任务独立验证通过,全程零失败、零重复派发。
 
 ## 许可
 
