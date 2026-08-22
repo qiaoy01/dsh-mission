@@ -13,6 +13,13 @@
     - id: mission-tool
       name: '@qiaoy01/mission/tool'
 
+    # Trigger companion: a soft-guidance prompt section that routes trigger
+    # phrases ("mission:", "创建任务", "create mission", "/mission"...) into
+    # mission_create + mission_plan, plus a `/mission` slash command. Tolerant:
+    # no-op where dsh-system-prompt / dsh-commands are absent.
+    - id: mission-trigger
+      name: '@qiaoy01/mission/trigger'
+
     # Tolerant: registers only when the `invariants` service exists (dev/test
     # compositions); a shipped host without dsh-invariants is a no-op.
     - id: mission-invariant

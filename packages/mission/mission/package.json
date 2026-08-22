@@ -30,6 +30,10 @@
                                    "types":  "./lib/src/tools.d.ts",
                                    "default":  "./lib/src/tools.js"
                                },
+                    "./trigger":  {
+                                   "types":  "./lib/src/trigger.d.ts",
+                                   "default":  "./lib/src/trigger.js"
+                               },
                     "./driver-host":  {
                                           "types":  "./lib/src/driver-host.d.ts",
                                           "default":  "./lib/src/driver-host.js"
@@ -55,6 +59,8 @@
                              "@deepseek-ai/dsh-session-projection":  "*",
                              "@deepseek-ai/dsh-subagent":  "*",
                              "@deepseek-ai/dsh-tools":  "*",
+                             "@deepseek-ai/dsh-commands":  "*",
+                             "@deepseek-ai/dsh-system-prompt":  "*",
                              "zod":  "*"
                          },
     "devDependencies":  {
