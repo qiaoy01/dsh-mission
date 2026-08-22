@@ -45,6 +45,10 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
     /** The session's current mission, or `null` before the first create. */
     mission: MissionProjectionValue
   }
+  interface SessionProjectionStateMap {
+    /** The collected mission event stream. */
+    mission: MissionProjectionState
+  }
 }
 
 const missionProjectionSchema = z.object({
@@ -63,6 +67,43 @@ const missionProjectionSchema = z.object({
     })),
     dependencies: z.array(z.object({ taskId: z.string(), dependsOn: z.string() })),
   }).nullable(),
+})
+
+/** Validates persisted projection state (the collected mission event stream). */
+const missionProjectionStateSchema: z.ZodType<MissionProjectionState> = z.object({
+  events: z.array(z.discriminatedUnion('type', [
+    z.object({ type: z.literal('mission/created'), missionId: z.string(), objective: z.string() }),
+    z.object({
+      type: z.literal('mission/plan-committed'),
+      missionId: z.string(),
+      revision: z.number().int(),
+      tasks: z.array(z.object({ taskId: z.string(), name: z.string(), workerType: z.string(), priority: z.number() })),
+      dependencies: z.array(z.object({ taskId: z.string(), dependsOn: z.string() })),
+    }),
+    z.object({
+      type: z.literal('mission/task-claimed'),
+      missionId: z.string(),
+      taskId: z.string(),
+      lease: z.object({ owner: z.string(), token: z.string(), expiresAt: z.number(), attempt: z.number().int() }),
+    }),
+    z.object({
+      type: z.literal('mission/task-reported'),
+      missionId: z.string(),
+      taskId: z.string(),
+      token: z.string(),
+      exitCode: z.number().int(),
+      output: z.unknown().optional(),
+    }),
+    z.object({
+      type: z.literal('mission/task-verified'),
+      missionId: z.string(),
+      taskId: z.string(),
+      verifierType: z.string(),
+      passed: z.boolean(),
+      evidence: z.unknown().optional(),
+    }),
+    z.object({ type: z.literal('mission/cancelled'), missionId: z.string() }),
+  ])),
 })
 
 /** Plain-JSON projection state: the collected mission event stream. */
@@ -113,10 +154,13 @@ export function apply(ctx: Context): void {
   ctx.inject(['sessionProjections'], (projectionCtx) => {
     projectionCtx.sessionProjections.register({
       key: 'mission',
-      schema: missionProjectionSchema,
+      stateSchema: missionProjectionStateSchema,
       init: initMissionProjection,
       apply: applyMissionProjection,
-      view: viewMissionProjection,
+      wire: {
+        viewSchema: missionProjectionSchema,
+        view: viewMissionProjection,
+      },
       stateVersion: 1,
     })
   })

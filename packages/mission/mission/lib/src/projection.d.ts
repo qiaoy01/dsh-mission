@@ -28,6 +28,10 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
         /** The session's current mission, or `null` before the first create. */
         mission: MissionProjectionValue;
     }
+    interface SessionProjectionStateMap {
+        /** The collected mission event stream. */
+        mission: MissionProjectionState;
+    }
 }
 /** Plain-JSON projection state: the collected mission event stream. */
 export interface MissionProjectionState {
