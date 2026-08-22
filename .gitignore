@@ -3,9 +3,13 @@ node_modules/
 .dsh-test2/
 backups/
 .pnpm-store/
+.npm-cache-publish/
 .comfy-temp/
 .comfy-user/
 slides/
 blog/
 AGENTS.md
 *.log
+docs/
+racing-demo/
+racing-game/
