@@ -52,6 +52,8 @@ Core principle: **agents propose, the environment adjudicates, the runtime commi
 - **Optional model strategies**: `llmDecider` (pick the next task) /
   `llmReplanner` (replan) / `userApprovalGate` (approval gate);
 - **UI data plane**: a `mission` session-projection unit;
+- **Trigger companion** (`mission-trigger`): a soft-guidance prompt + `/mission`
+  slash command that routes trigger phrases into `mission_create`/`mission_plan`;
 - **Tolerant companion**: `mission-invariant` registers its audit whenever the
   `invariants` service exists, and is a no-op otherwise (production profiles
   load without extra configuration).
@@ -73,7 +75,7 @@ tasks `PENDING / CLAIMED / DONE / FAILED` + derived `READY / BLOCKED`.
 ## Install & use
 
 ```bash
-# Install from npm (published; inserts a 5-row bundle patch into the composition)
+# Install from npm (published; inserts a 6-row bundle patch into the composition)
 dsh plugin --profile <name> add @qiaoy01/mission
 ```
 
@@ -94,9 +96,10 @@ dsh plugin --profile <name> add file:.
 > declares `dsh.bundle.patch` → `cordis.patch.yml`.
 > After changing source, re-run `npm run build` and re-add the package.
 
-In a session, the agent drives the mission through three model tools:
+In a session, the agent drives the mission through four model tools:
 `mission_create` (create a mission), `mission_plan` (commit a task DAG; revision
-must equal current + 1), and `mission_status` (read the current state).
+must equal current + 1), `mission_status` (read the current state), and
+`mission_cancel` (cancel the mission).
 
 After the model commits a plan, **the runtime takes over**: `mission-driver`
 claims tasks, dispatches real subagents, and verifies independently. The model
@@ -130,11 +133,12 @@ zero model cost). Enable model strategies via the profile row config:
 
 ```bash
 npm run build          # auto-discovers a local tsc; typecheck + emit to lib/
-# Five test suites, all run in isolation:
+# Six test suites, all run in isolation:
 node --experimental-strip-types tests/domain.test.mjs    # pure domain model
 node tests/service.test.mjs                               # runtime (real cordis/session/agent)
 node tests/driver.test.mjs                                # driver loop (mock executor)
 node tests/driver-host.test.mjs                           # driver host (stubbed subagents)
+node tests/trigger.test.mjs                               # trigger companion (soft guidance + /mission)
 node --experimental-strip-types tests/projection.test.mjs # session-projection unit
 ```
 

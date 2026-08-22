@@ -43,6 +43,8 @@
 - **失败重规划**:mission 卡死时产出新 revision,已 DONE 且 spec 未变的任务跨 revision 保留;
 - **模型策略可选**:`llmDecider`(选下一任务)/ `llmReplanner`(重规划)/ `userApprovalGate`(审批闸);
 - **UI 数据面**:`mission` session projection 单元;
+- **触发伴生**(`mission-trigger`):软指引提示词 + `/mission` 斜杠命令,把触发短语
+  路由到 `mission_create`/`mission_plan`;
 - **容错伴生**:`mission-invariant` 在 `invariants` 服务存在时自动注册审计,不存在时静默跳过
   (生产 profile 无需额外配置即可加载)。
 
@@ -63,7 +65,7 @@
 ## 安装与使用
 
 ```bash
-# 从 npm 安装(已发布;会把 5 行 bundle patch 插入组合)
+# 从 npm 安装(已发布;会把 6 行 bundle patch 插入组合)
 dsh plugin --profile <name> add @qiaoy01/mission
 ```
 
@@ -83,8 +85,9 @@ dsh plugin --profile <name> add file:.
 > `dsh.bundle.patch` → `cordis.patch.yml`),因为你刚 `cd` 进去的就是仓库根。改完源码后要重新
 > `npm run build` 并重新 add。
 
-在会话中,agent 通过三个模型工具使用 mission:`mission_create`(创建)、
-`mission_plan`(提交任务 DAG,revision 必须 = 当前 + 1)、`mission_status`(读取状态)。
+在会话中,agent 通过四个模型工具使用 mission:`mission_create`(创建)、
+`mission_plan`(提交任务 DAG,revision 必须 = 当前 + 1)、`mission_status`(读取状态)、
+`mission_cancel`(取消 mission)。
 
 模型提交计划后,**执行由运行时接管**(`mission-driver` 自动认领任务、派发真实子代理、
 独立验证)。模型不需要也不应该自己执行任务。
@@ -116,11 +119,12 @@ dsh plugin --profile web add @qiaoy01/mission
 
 ```bash
 npm run build          # 自动发现本机 tsc;typecheck + emit 到 lib/
-# 五套测试,全部隔离运行:
+# 六套测试,全部隔离运行:
 node --experimental-strip-types tests/domain.test.mjs    # 纯函数域模型
 node tests/service.test.mjs                               # 运行时(真实 cordis/session/agent)
 node tests/driver.test.mjs                                # driver 循环(mock 执行器)
 node tests/driver-host.test.mjs                           # 驱动宿主(stub subagents)
+node tests/trigger.test.mjs                               # trigger 伴生(软指引 + /mission)
 node --experimental-strip-types tests/projection.test.mjs # 会话投影单元
 ```
 

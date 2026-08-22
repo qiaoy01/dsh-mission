@@ -1,6 +1,6 @@
 # The @qiaoy01/mission bundle patch: inserts the mission service, the
-# model-facing mission tools, the (tolerant) invariant companion, the
-# autonomous driver host, and the session-projection unit into the profile.
+# model-facing mission tools, the trigger companion, the (tolerant) invariant
+# companion, the autonomous driver host, and the session-projection unit.
 #
 # mission-driver defaults are conservative: deterministic task selection and
 # no automatic replan, so the default composition costs no model calls. Set

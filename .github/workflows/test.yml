@@ -34,5 +34,8 @@ jobs:
       - name: Driver host tests
         run: node tests/driver-host.test.mjs
 
+      - name: Trigger tests
+        run: node tests/trigger.test.mjs
+
       - name: Projection tests
         run: node --experimental-strip-types tests/projection.test.mjs

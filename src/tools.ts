@@ -1,6 +1,7 @@
-// Model-facing `mission_create`, `mission_plan`, and `mission_status` tools
-// over the persisted mission domain. Execution and verification are
-// driver-side actions (phase C), so the model only creates, plans, and reads.
+// Model-facing `mission_create`, `mission_plan`, `mission_status`, and
+// `mission_cancel` tools over the persisted mission domain. Execution and
+// verification are driver-side actions (phase C), so the model only creates,
+// plans, reads, and cancels.
 // @module @deepseek-ai/dsh-mission/tool
 
 import type { Context } from '@deepseek-ai/cordis'

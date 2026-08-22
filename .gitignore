@@ -4,8 +4,8 @@ node_modules/
 backups/
 .pnpm-store/
 .npm-cache-publish/
-.comfy-temp/
-.comfy-user/
+.comfy-temp
+.comfy-user
 slides/
 blog/
 AGENTS.md
@@ -13,6 +13,8 @@ AGENTS.md
 docs/
 racing-demo/
 racing-game/
-.comfy-user
-.comfy-temp
-
+.env
+.env.*
+*.pem
+*.key
+scripts/restart-web.ps1
